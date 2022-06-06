@@ -156,6 +156,7 @@ void            end_sys_globals;                // flag for structure dumping
 .float          button0;                // fire
 .float          button1;                // use
 .float          button2;                // jump
+.float			button3;				// altfire
 
 .float          impulse;                // weapon changes
 
@@ -295,9 +296,9 @@ ABS
 */
 float   IT_AXE                                  = 4096;
 float   IT_SHOTGUN                              = 1;//MagnetShoutgun
-float   IT_SUPER_SHOTGUN                = 2;
+float   IT_SUPER_SHOTGUN                = 2;//Harpoon
 float   IT_NAILGUN                              = 4;//Minigun
-float   IT_SUPER_NAILGUN                = 8;//Harpoon
+float   IT_SUPER_NAILGUN                = 8;
 float   IT_GRENADE_LAUNCHER             = 16;//Fire GrenadeLauncher
 float   IT_ROCKET_LAUNCHER              = 32;//RocketLauncher
 float   IT_LIGHTNING                    = 64;
@@ -533,6 +534,9 @@ float   AS_MISSILE              = 4;
 .float          air_finished;   // when time > air_finished, start drowning
 .float          bubble_count;   // keeps track of the number of bubbles
 .string         deathtype;              // keeps track of how the player died
+
+.float 	detonateGrenade = 0;
+.float  contactDetonate = 0;
 
 //
 // object stuff

@@ -7,6 +7,7 @@ void(vector org, float damage) SpawnBlood;
 void() SuperDamageSound;
 
 
+
 // called by worldspawn
 void() W_Precache =
 {
@@ -352,9 +353,6 @@ void() W_FireShotgun =
 		pellet_size = pellet_size -1;
 	}
 
-		/*
-	dir = aim (self, 100000);
-	FireBullets (6, dir, '0.04 0.04 0');*/
 };
 
 
@@ -366,7 +364,8 @@ W_FireSuperShotgun
 void() W_FireSuperShotgun =
 {
 	local vector dir;
-
+	local entity	old;
+	
 	if (self.currentammo == 1)
 	{
 		W_FireShotgun ();
@@ -381,7 +380,10 @@ void() W_FireSuperShotgun =
 	if (deathmatch != 4)
 		self.currentammo = self.ammo_shells = self.ammo_shells - 2;
 	dir = aim (self, 100000);
-	FireBullets (14, dir, '0.14 0.08 0');
+	launch_spike (self.origin + '0 0 16', dir);
+	newmis.touch = superspike_touch;
+	setmodel (newmis, "progs/s_spike.mdl");
+	setsize (newmis, VEC_ORIGIN, VEC_ORIGIN);	
 };
 
 
@@ -636,13 +638,13 @@ void() W_FireLightning =
 //=============================================================================
 
 
-void() GrenadeExplode =
-{
-	if (self.voided) {
-		return;
-	}
+void() GrenadeExplode = {
+	if (self.voided) 
+		{return;}
 	self.voided = 1;
 
+	if(self.detonateGrenade == 0){	
+	
 	T_RadiusDamage (self, self.owner, 120, world, "grenade");
 
 	WriteByte (MSG_MULTICAST, SVC_TEMPENTITY);
@@ -653,20 +655,22 @@ void() GrenadeExplode =
 	multicast (self.origin, MULTICAST_PHS);
 
 	remove (self);
+	self.detonateGrenade = 0;
+	self.attack_finished = time + 0.1;
+	}
+	
 };
 
 void() GrenadeTouch =
 {
 	if (other == self.owner)
 		return;         // don't explode on owner
-	if (other.takedamage == DAMAGE_AIM)
-	{
+	if (other.takedamage == DAMAGE_AIM){
 		GrenadeExplode();
 		return;
 	}
 	sound (self, CHAN_WEAPON, "weapons/bounce.wav", 1, ATTN_NORM);  // bounce sound
-	if (self.velocity == '0 0 0')
-		self.avelocity = '0 0 0';
+	self.avelocity = '0 0 0';
 };
 
 /*
@@ -713,13 +717,13 @@ void() W_FireGrenade =
 // set newmis duration
 	if (deathmatch == 4)
 	{
-		newmis.nextthink = time + 2.5;		
+		newmis.nextthink = time;		
 		self.attack_finished = time + 1.1;
 //		self.health = self.health - 1;
 		T_Damage (self, self, self.owner, 10 );
 	}
 	else
-		newmis.nextthink = time + 2.5;
+		newmis.nextthink = time;
 
 	newmis.think = GrenadeExplode;
 
@@ -1077,6 +1081,60 @@ void() W_Attack =
 
 /*
 ============
+W_Attack Alternative
+
+An attack impulse can be triggered now
+============
+*/
+
+void() W_Attack2 = {
+
+	makevectors	(self.v_angle);			// calculate forward angle for velocity
+
+
+	if (self.weapon == IT_SHOTGUN){
+		//player_shot1 ();
+		//W_FireShotgun ();
+		//self.attack_finished = time + 0.5;
+	}
+	else if (self.weapon == IT_SUPER_SHOTGUN)
+	{
+		//player_shot1 ();
+		//W_FireSuperShotgun ();
+		//self.attack_finished = time + 0.7;
+	}
+	else if (self.weapon == IT_NAILGUN)
+	{
+		//player_nail1 ();
+	}
+	else if (self.weapon == IT_SUPER_NAILGUN)
+	{
+		//player_nail1 ();
+	}
+	else if (self.weapon == IT_GRENADE_LAUNCHER)
+	{
+	//	player_rocket1();
+		//W_FireGrenade();
+		self.detonateGrenade = 1;
+		
+	//	self.attack_finished = time + 0.6;
+	}
+	else if (self.weapon == IT_ROCKET_LAUNCHER)
+	{
+		//player_rocket1();
+		//W_FireRocket();
+		//self.attack_finished = time + 0.8;
+	}
+	else if (self.weapon == IT_LIGHTNING)
+	{
+		//player_light1();
+		//self.attack_finished = time + 0.1;
+		//sound (self, CHAN_AUTO, "weapons/lstart.wav", 1, ATTN_NORM);
+	}
+};
+
+/*
+============
 W_ChangeWeapon
 
 ============
@@ -1388,10 +1446,12 @@ void() W_WeaponFrame =
 	ImpulseCommands ();
 	
 // check for attack
-	if (self.button0)
-	{
+	if (self.button0){
 		SuperDamageSound ();
 		W_Attack ();
+	}
+	if(self.button3){
+		W_Attack2();
 	}
 };
 
